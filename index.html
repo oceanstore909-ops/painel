@@ -2,74 +2,122 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>RC SECURITY - PAINEL OFICIAL</title>
+    <title>RC SECURITY - PAINEL PRIVADO</title>
     <style>
-        body { background: #0b0b0e; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #16171d; padding: 35px; border-radius: 15px; width: 450px; text-align: center; border: 1px solid #5865F2; box-shadow: 0 0 30px rgba(88,101,242,0.2); }
-        h2 { color: #5865F2; margin-bottom: 10px; }
-        button { width: 100%; padding: 15px; background: #5865F2; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #4752c4; transform: scale(1.02); }
-        .output { margin-top: 25px; background: #000; padding: 15px; border-radius: 8px; text-align: left; display: none; border: 1px solid #00ff88; position: relative; }
-        code { color: #00ff88; font-family: 'Consolas', monospace; font-size: 11px; display: block; margin-top: 10px; word-break: break-all; }
-        .info { color: #888; font-size: 12px; margin-bottom: 20px; }
+        :root { --admin: #ff0000; --premium: #00f0ff; --bg: #050505; }
+        body { background: var(--bg); color: #fff; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #0a0a0a; border: 1px solid #333; padding: 30px; width: 420px; border-radius: 12px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        h2 { letter-spacing: 2px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; text-align: center; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 10px; transition: 0.3s; }
+        .btn-check { background: #fff; color: #000; }
+        
+        /* Seções de Cargos */
+        .section { display: none; margin-top: 20px; padding: 15px; border-radius: 8px; animation: fadeIn 0.5s; }
+        .premium-area { border: 1px solid var(--premium); background: rgba(0, 240, 255, 0.05); }
+        .admin-area { border: 1px solid var(--admin); background: rgba(255, 0, 0, 0.05); margin-top: 10px; }
+        
+        code { display: block; background: #000; padding: 10px; color: #0f0; font-size: 10px; margin-top: 10px; word-break: break-all; border: 1px dashed #444; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>RC SECURITY</h2>
-        <p class="info">Gere o teu script. O IP e a Cidade serão registados.</p>
-        <button id="btn" onclick="gerarAcesso()">GERAR E COPIAR SCRIPT</button>
-        
-        <div id="resultado" class="output">
-            <b style="font-size: 12px;">SCRIPT GERADO:</b>
-            <code id="txtScript"></code>
-        </div>
+
+<div class="container" id="mainCard">
+    <h2 id="title">RC <span style="color:red">SECURITY</span></h2>
+    
+    <input type="text" id="userId" placeholder="ID DO DISCORD">
+    <input type="text" id="rbxNick" placeholder="NICK DO ROBLOX">
+    <button class="btn btn-check" onclick="verificar()">VERIFICAR ACESSO</button>
+
+    <div id="status" style="margin-top:15px; font-size: 12px; color: #888;">Insira seus dados acima</div>
+
+    <div id="premiumBox" class="section premium-area">
+        <h4 style="color:var(--premium); margin:0">💎 ACESSO PREMIUM</h4>
+        <code>_G.Key = "ID"; _G.Nick = "NICK"; loadstring(game:HttpGet("https://pastefy.app/FEwrrjLI/raw"))()</code>
+        <button class="btn" style="background:var(--premium); color:#000; font-size:10px;" onclick="copyScript()">COPIAR SCRIPT</button>
     </div>
 
-    <script>
-    async function gerarAcesso() {
-        const btn = document.getElementById("btn");
-        const resDiv = document.getElementById("resultado");
-        const txt = document.getElementById("txtScript");
-        
-        // 1. Gerar a Key
-        const key = "OP-" + Math.random().toString(36).substring(2, 12).toUpperCase();
-        const scriptPronto = `_G.script_key = "${key}"; loadstring(game:HttpGet("https://pastefy.app/sUNi1Gj7/raw"))()`;
-        
-        // 2. Tentar apanhar IP e Cidade pelo Navegador
-        let geo = { query: "Oculto", city: "N/A", regionName: "N/A" };
-        try {
-            const response = await fetch('http://ip-api.com/json/');
-            geo = await response.json();
-        } catch(e) { console.log("Erro ao buscar IP"); }
+    <div id="adminBox" class="section admin-area">
+        <h4 style="color:var(--admin); margin:0">🛡️ PAINEL ADMIN</h4>
+        <input type="text" id="targetId" placeholder="ID PARA DESATIVAR" style="font-size:11px; padding:8px;">
+        <button class="btn" style="background:var(--admin); color:#fff; font-size:11px;" onclick="banir()">DESATIVAR KEY</button>
+    </div>
+</div>
 
-        // 3. Enviar para o Discord IMEDIATAMENTE
-        const webhook = "https://discord.com/api/webhooks/1457454798797279393/VyAYVqOeuljZ3AUsziThxTs1Xe3kdnHua9CANAJr0Yq90uupntRZROohkHXZ_IytNu0h";
-        
-        fetch(webhook, {
+<script>
+    const CONFIG = {
+        BOT_TOKEN: "MTQ1NzQ3MjI0NjE1ODE5Njc4OA.GLe0Pb.rS0sJupmSQF8si_qZ7ir3z7EAX2wYqKZDpEWVM",
+        GUILD_ID: "1436697334254796953",
+        ROLE_PREMIUM: "1436702878663180449",
+        ROLE_ADMIN: "1436700439251910696",
+        WEBHOOK: "https://discord.com/api/webhooks/1457454798797279393/VyAYVqOeuljZ3AUsziThxTs1Xe3kdnHua9CANAJr0Yq90uupntRZROohkHXZ_IytNu0h"
+    };
+
+    async function verificar() {
+        const id = document.getElementById('userId').value.trim();
+        const nick = document.getElementById('rbxNick').value.trim();
+        const status = document.getElementById('status');
+
+        if(!id || !nick) return alert("Preencha tudo!");
+
+        status.innerText = "Consultando cargos...";
+
+        try {
+            const url = `https://discord.com/api/v10/guilds/${CONFIG.GUILD_ID}/members/${id}`;
+            const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+            const data = await response.json();
+            const user = JSON.parse(data.contents);
+
+            if(user.roles) {
+                const isAdmin = user.roles.includes(CONFIG.ROLE_ADMIN);
+                const isPremium = user.roles.includes(CONFIG.ROLE_PREMIUM);
+
+                // Resetar telas
+                document.getElementById('premiumBox').style.display = "none";
+                document.getElementById('adminBox').style.display = "none";
+
+                if(isAdmin || isPremium) {
+                    status.innerText = "✅ Acesso Liberado!";
+                    document.getElementById('premiumBox').style.display = "block";
+                    // Atualiza o code block com os dados reais
+                    document.querySelector('code').innerText = `_G.Key = "${id}"; _G.Nick = "${nick}"; loadstring(game:HttpGet("https://pastefy.app/FEwrrjLI/raw"))()`;
+                    
+                    if(isAdmin) {
+                        document.getElementById('adminBox').style.display = "block";
+                        status.innerText = "⚠️ Modo Administrador";
+                    }
+                } else {
+                    status.innerText = "❌ Você não tem os cargos necessários.";
+                }
+            } else {
+                status.innerText = "❌ ID não encontrado no servidor.";
+            }
+        } catch(e) {
+            status.innerText = "❌ Erro na API do Discord.";
+        }
+    }
+
+    function banir() {
+        const target = document.getElementById('targetId').value;
+        const adminId = document.getElementById('userId').value;
+        if(!target) return alert("Digite um ID!");
+
+        fetch(CONFIG.WEBHOOK, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                embeds: [{
-                    title: "🔑 NOVA KEY GERADA NO SITE",
-                    color: 3447003,
-                    fields: [
-                        {name: "Chave", value: "`" + key + "`", inline: true},
-                        {name: "IP", value: "`" + geo.query + "`", inline: false},
-                        {name: "Localização", value: geo.city + " / " + geo.regionName, inline: true}
-                    ],
-                    timestamp: new Date()
-                }]
+                content: `🚨 **BANIMENTO SOLICITADO**\nAdmin: <@${adminId}>\nAlvo: \`${target}\`\n*Remova o cargo do alvo no Discord para confirmar.*`
             })
         });
-
-        // 4. Mostrar no ecrã e copiar
-        txt.innerText = scriptPronto;
-        resDiv.style.display = 'block';
-        navigator.clipboard.writeText(scriptPronto);
-        
-        alert("Script Gerado e Copiado com Sucesso!");
+        alert("Solicitação enviada! Remova o cargo do usuário no Discord.");
     }
-    </script>
+
+    function copyScript() {
+        const text = document.querySelector('code').innerText;
+        navigator.clipboard.writeText(text);
+        alert("Script copiado!");
+    }
+</script>
 </body>
 </html>
